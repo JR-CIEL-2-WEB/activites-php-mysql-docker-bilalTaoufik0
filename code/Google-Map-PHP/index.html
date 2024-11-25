@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Courses Map - Google Maps</title>
+  <style>
+    #map {
+      height: 400px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <select id="courseSelect">
+    <option value="1">Course 1</option>
+    <option value="2">Course 2</option>
+    <option value="3">Course 3</option>
+  </select>
+
+  <div id="map"></div>
+
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA7Y32T_PJHZxYcK3BJYJFNwSl6cuvLXpo&callback=initMap" async defer></script>
+  <script>
+    let map, polyline, coursesData;
+
+    function initMap() {
+
+      const defaultLatLng = { lat: 48.8566, lng: 2.3522 };
+
+      map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 15,
+        center: defaultLatLng
+      });
+
+      fetch('traitement.php')
+        .then(response => response.json())
+        .then(data => {
+          coursesData = data; 
+          loadCourse(coursesData[0].id);
+        });
+
+      document.getElementById('courseSelect').addEventListener('change', (event) => {
+        loadCourse(event.target.value);
+      });
+    }
+
+    function loadCourse(courseId) {
+      let course = null;
+
+      for (let i = 0; i < coursesData.length; i++) {
+        if (coursesData[i].id === courseId) {
+          course = coursesData[i];
+          break;
+        }
+      }
+      
+      if (course) {
+        const path = course.markers.map(marker => ({ lat: marker.lat, lng: marker.lng }));
+
+        map.setCenter(path[0]);
+
+        if (polyline) {
+          polyline.setMap(null);
+        }
+
+        polyline = new google.maps.Polyline({
+          path: path,
+          geodesic: true,
+          strokeColor: "#FF0000",
+          strokeOpacity: 1.0,
+          strokeWeight: 2
+        });
+
+        polyline.setMap(map);
+
+        path.forEach(coord => {
+          new google.maps.Marker({
+            position: coord,
+            map: map
+          });
+        });
+      }
+    }
+
+  </script>
+</body>
+</html>
