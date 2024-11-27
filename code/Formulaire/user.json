@@ -1,0 +1,17 @@
+[
+    {
+        "name": "Bilal",
+        "prenom": "Taoufik",
+        "email": "bilal.taoufik@lycee-jeanrostand.fr",
+        "password": "123456789",
+        "of_age": "Oui",
+        "logo": "img/bilal.jpg"
+    },
+    {
+        "name": "Amine",
+        "prenom": "Ghenimi",
+        "email": "amine.g@gmail.com",
+        "password": "$2y$10$pEibENcfkMw6ip28PQhf7OVStK7w08EDENjHUT\/s5XvUVmef\/zUgq",
+        "of_age": "Oui"
+    }
+]

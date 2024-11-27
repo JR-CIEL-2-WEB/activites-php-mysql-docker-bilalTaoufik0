@@ -60,47 +60,103 @@
 
 <body>
     <div class="container">
-        <?php
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $name = htmlspecialchars($_POST['name'] ?? '');
-            $prenom = htmlspecialchars($_POST['prénom'] ?? '');
-            $email = htmlspecialchars($_POST['email'] ?? '');
-            $password = htmlspecialchars($_POST['password'] ?? '');
-            $message = htmlspecialchars($_POST['message'] ?? '');
-            $of_age = isset($_POST['of_age']) ? 'Oui' : 'Non';
-
-            $errors = [];
-
-            // Validation des champs
-            if (empty($name)) $errors[] = 'Le champ "Nom" est obligatoire.';
-            if (empty($prenom)) $errors[] = 'Le champ "Prénom" est obligatoire.';
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Email invalide.';
-            if (strlen($password) < 8) $errors[] = 'Le mot de passe doit contenir au moins 8 caractères.';
-            if (empty($message)) $errors[] = 'Le champ "Message" est obligatoire.';
-            if ($of_age === 'Non') $errors[] = 'Vous devez être majeur.';
-
-            // Affichage des erreurs ou des données
-            if (!empty($errors)) {
-                echo '<h1>Erreurs</h1>';
-                echo '<ul class="error">';
-                foreach ($errors as $error) {
-                    echo "<li>$error</li>";
-                }
-                echo '</ul>';
-            } else {
-                echo '<h1>Données Reçues</h1>';
-                echo '<div class="data-row"><span class="data-label">Nom :</span> <span class="data-value">' . $name . '</span></div>';
-                echo '<div class="data-row"><span class="data-label">Prénom :</span> <span class="data-value">' . $prenom . '</span></div>';
-                echo '<div class="data-row"><span class="data-label">Email :</span> <span class="data-value">' . $email . '</span></div>';
-                echo '<div class="data-row"><span class="data-label">Message :</span> <span class="data-value">' . $message . '</span></div>';
-                echo '<div class="data-row"><span class="data-label">Majeur :</span> <span class="data-value">' . $of_age . '</span></div>';
-                echo '<div class="data-row"><span class="data-label">Mot de passe :</span> <span class="data-value">(non affiché pour des raisons de sécurité)</span></div>';
-            }
-        } else {
-            echo '<h1>Accès non autorisé</h1>';
-            echo '<p class="error">Veuillez soumettre le formulaire pour accéder à cette page.</p>';
+    <?php
+    // Fonction pour lire les utilisateurs depuis le fichier JSON
+    function getUsersFromFile($file) {
+        if (!file_exists($file)) {
+            return [];
         }
-        ?>
+        $data = file_get_contents($file);
+        $users = json_decode($data, true);
+        
+        if (!is_array($users)) {
+            $users = []; 
+        }
+
+        return $users;
+    }
+
+    // Fonction pour sauvegarder un utilisateur dans le fichier JSON
+    function saveUserToFile($file, $user) {
+        $users = getUsersFromFile($file);
+        $users[] = $user;
+        file_put_contents($file, json_encode($users, JSON_PRETTY_PRINT));
+    }
+
+    $userFile = 'user.json'; 
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $name = htmlspecialchars($_POST['name'] ?? '');
+        $prenom = htmlspecialchars($_POST['prénom'] ?? '');
+        $email = htmlspecialchars($_POST['email'] ?? '');
+        $password = htmlspecialchars($_POST['password'] ?? '');
+        $message = htmlspecialchars($_POST['message'] ?? '');
+        $of_age = isset($_POST['of_age']) ? 'Oui' : 'Non';
+
+        $errors = [];
+
+        if (empty($name)) $errors[] = 'Le champ "Nom" est obligatoire.';
+        if (empty($prenom)) $errors[] = 'Le champ "Prénom" est obligatoire.';
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Email invalide.';
+        if (strlen($password) < 8) $errors[] = 'Le mot de passe doit contenir au moins 8 caractères.';
+        if (empty($message)) $errors[] = 'Le champ "Message" est obligatoire.';
+        if ($of_age === 'Non') $errors[] = 'Vous devez être majeur.';
+
+        if (!empty($errors)) {
+            echo '<h1>Erreurs</h1>';
+            echo '<ul class="error">';
+            foreach ($errors as $error) {
+                echo "<li>$error</li>";
+            }
+            echo '</ul>';
+        } else {
+            $users = getUsersFromFile($userFile);
+
+            $existingUser = null;
+            foreach ($users as $user) {
+                if ($user['email'] === $email) {
+                    $existingUser = $user;
+                    break;
+                }
+            }
+
+            if ($existingUser) {
+                $logo = $existingUser['logo'] ?? ''; // Vérifie si le logo est défini
+                echo '<div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">';
+
+                if (!empty($logo)) {
+                    // Affiche l'image si elle existe
+                    echo '<img src="' . htmlspecialchars($logo) . '" alt="User Logo" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; margin-bottom: 10px;">';
+                } else {
+                    // Affiche un cercle par défaut si l'image n'existe pas
+                    echo '<div style="width: 150px; height: 150px; border-radius: 50%; background-color: #ccc; margin-bottom: 10px;"></div>';
+                }
+
+                // Affiche le nom et prénom sous le cercle
+                echo '<div style="font-size: 20px; font-weight: bold;">' . htmlspecialchars($existingUser['name']) . ' ' . htmlspecialchars($existingUser['prenom']) . '</div>';
+
+                echo '</div>';
+            } else {
+                $newUser = [
+                    'name' => $name,
+                    'prenom' => $prenom,
+                    'email' => $email,
+                    'message' => $message,
+                    'password' => password_hash($password, PASSWORD_BCRYPT),
+                    'of_age' => $of_age,
+                    'logo' => "" // Ajouter un logo si nécessaire
+                ];
+                saveUserToFile($userFile, $newUser);
+
+                echo '<h1>Bienvenue ' . $name . ' ' . $prenom . '!</h1>';
+            }
+        }
+    } else {
+        echo '<h1>Accès non autorisé</h1>';
+        echo '<p class="error">Veuillez soumettre le formulaire pour accéder à cette page.</p>';
+    }
+    ?>
+
     </div>
 </body>
 
