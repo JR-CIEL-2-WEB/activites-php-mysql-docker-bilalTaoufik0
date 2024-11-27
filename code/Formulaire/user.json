@@ -14,5 +14,14 @@
         "password": "$2y$10$pEibENcfkMw6ip28PQhf7OVStK7w08EDENjHUT\/s5XvUVmef\/zUgq",
         "of_age": "Oui",
         "logo": "img\/amine.jpg"
+    },
+    {
+        "name": "Adel",
+        "prenom": "Aichi",
+        "email": "adel.a@gmail.com",
+        "message": "dzqdqzd",
+        "password": "$2y$10$H9m5cjd2FxR.JBj4yTWykeTnTut0wNl9qHp1ASG.Iv\/zEg8qEU1A2",
+        "of_age": "Oui",
+        "logo": "img\/images.jpg"
     }
 ]
