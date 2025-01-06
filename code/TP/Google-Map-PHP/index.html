@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Courses Map - Google Maps</title>
+  <style>
+    #map {
+      height: 400px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <select id="courseSelect">
+    <option value="1">Course 1</option>
+    <option value="2">Course 2</option>
+    <option value="3">Course 3</option>
+  </select>
+
+  <div id="map"></div>
+
+  <script src="script.js"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA7Y32T_PJHZxYcK3BJYJFNwSl6cuvLXpo&callback=initMap" async defer></script>
+  
+</body>
+</html>
