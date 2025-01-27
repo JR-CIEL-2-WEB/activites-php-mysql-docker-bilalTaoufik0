@@ -1,18 +1,90 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Employés</title>
+    <title>Employee Details</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        .btn {
+            padding: 8px 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
-    <h1>Bienvenue sur le Dashboard Employés</h1>
-    <nav>
-        <ul>
-            <li><a href="tri_selection.php">Tri des salaires</a></li>
-            <li><a href="mediane.php">Médiane des salaires</a></li>
-            <li><a href="moyenne.php">Moyenne des salaires</a></li>
-        </ul>
-    </nav>
+    <h1>Employees Details</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Address</th>
+                <th>Salary</th>
+            </tr>
+        </thead>
+        <tbody id="employeeTable">
+            <!-- Les données des employés seront insérées ici -->
+        </tbody>
+    </table>
+
+    <h2>Médiane des salaires</h2>
+    <div id="medianSalary">Calcul en cours...</div>
+
+    <script>
+        // Récupérer les données des employés
+        fetch('config.php')
+            .then(response => response.json())
+            .then(data => {
+                const employeeTable = document.getElementById('employeeTable');
+                const medianSalaryDiv = document.getElementById('medianSalary');
+
+                if (data.error) {
+                    medianSalaryDiv.textContent = data.error;
+                } else {
+                    // Insérer les employés dans la table
+                    data.employees.forEach((employee, index) => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${index + 1}</td>
+                            <td>${employee.name}</td>
+                            <td>${employee.address}</td>
+                            <td>${employee.salary}</td>
+                        `;
+                        employeeTable.appendChild(row);
+                    });
+
+                    // Afficher la médiane
+                    medianSalaryDiv.textContent = `Médiane des salaires : ${data.median}`;
+                }
+            })
+            .catch(err => {
+                document.getElementById('medianSalary').textContent = 'Erreur lors du chargement des données.';
+                console.error(err);
+            });
+    </script>
 </body>
 </html>
