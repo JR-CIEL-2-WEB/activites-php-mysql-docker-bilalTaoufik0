@@ -4,81 +4,217 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Employee Details</title>
+    <!-- Ajout de Bootstrap pour les styles modernes -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
             margin: 20px;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
+        .container {
+            max-width: 1200px;
         }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: left;
+        .card-header {
+            background-color: #007bff;
+            color: white;
         }
-        th {
-            background-color: #f4f4f4;
-        }
-        .btn {
-            padding: 8px 12px;
+        .btn-custom {
             background-color: #007bff;
             color: white;
             border: none;
-            border-radius: 4px;
-            cursor: pointer;
         }
-        .btn:hover {
+        .btn-custom:hover {
             background-color: #0056b3;
+        }
+        .btn-delete {
+            background-color: #dc3545;
+        }
+        .btn-delete:hover {
+            background-color: #c82333;
+        }
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: #f9f9f9;
+        }
+        .table th, .table td {
+            vertical-align: middle;
         }
     </style>
 </head>
 <body>
-    <h1>Employees Details</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Name</th>
-                <th>Address</th>
-                <th>Salary</th>
-            </tr>
-        </thead>
-        <tbody id="employeeTable">
-            <!-- Les données des employés seront insérées ici -->
-        </tbody>
-    </table>
 
-    <h2>Médiane des salaires</h2>
-    <div id="medianSalary">Calcul en cours...</div>
+    <div class="container">
+        <h1 class="my-4 text-center text-primary">Employee Details</h1>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>Add New Employee</h4>
+            </div>
+            <div class="card-body">
+                <button class="btn btn-custom" onclick="addEmployee()">Add Employee</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h4>Employee List</h4>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Address</th>
+                            <th>Salary</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employeeTable">
+                        <!-- Employees will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <h2 class="mt-4">Médiane des salaires</h2>
+        <div id="medianSalary" class="alert alert-info">Calcul en cours...</div>
+    </div>
 
     <script>
-        // Récupérer les données des employés
+        let employees = [];
+
+        // Add Employee function
+        function addEmployee() {
+            const name = prompt('Enter employee name');
+            const address = prompt('Enter employee address');
+            const salary = prompt('Enter employee salary');
+
+            if (name && address && salary) {
+                const newEmployee = {
+                    name,
+                    address,
+                    salary: parseFloat(salary)
+                };
+
+                // Add to local list
+                employees.push(newEmployee);
+                renderTable();
+                calculateMedianSalary();
+
+                // Send to server
+                fetch('add_employee.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newEmployee)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Erreur lors de l\'ajout');
+                    }
+                })
+                .catch(err => alert('Erreur de connexion au serveur.'));
+            }
+        }
+
+        // Delete Employee function
+        function deleteEmployee(index) {
+            const employee = employees[index];
+            employees.splice(index, 1);
+            renderTable();
+            calculateMedianSalary();
+
+            // Send deletion request
+            fetch('delete_employee.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: employee.id })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Erreur lors de la suppression');
+                }
+            })
+            .catch(err => alert('Erreur de connexion au serveur.'));
+        }
+
+        // Edit Employee function
+        function editEmployee(index) {
+            const employee = employees[index];
+            const name = prompt('Enter new name', employee.name);
+            const address = prompt('Enter new address', employee.address);
+            const salary = prompt('Enter new salary', employee.salary);
+
+            if (name && address && salary) {
+                employees[index] = { ...employee, name, address, salary: parseFloat(salary) };
+                renderTable();
+                calculateMedianSalary();
+
+                fetch('update_employee.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: employee.id, name, address, salary: parseFloat(salary) })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Erreur lors de la mise à jour');
+                    }
+                })
+                .catch(err => alert('Erreur de connexion au serveur.'));
+            }
+        }
+
+        // Render table function
+        function renderTable() {
+            const employeeTable = document.getElementById('employeeTable');
+            employeeTable.innerHTML = '';
+
+            employees.forEach((employee, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${employee.name}</td>
+                    <td>${employee.address}</td>
+                    <td>${employee.salary}</td>
+                    <td>
+                        <button class="btn btn-info" onclick="editEmployee(${index})">Edit</button>
+                        <button class="btn btn-delete" onclick="deleteEmployee(${index})">Delete</button>
+                    </td>
+                `;
+                employeeTable.appendChild(row);
+            });
+        }
+
+        // Calculate median salary function
+        function calculateMedianSalary() {
+            const salaries = employees.map(emp => emp.salary);
+            const count = salaries.length;
+
+            if (count > 0) {
+                salaries.sort((a, b) => a - b);
+                const median = count % 2 === 0
+                    ? (salaries[count / 2 - 1] + salaries[count / 2]) / 2
+                    : salaries[Math.floor(count / 2)];
+
+                document.getElementById('medianSalary').textContent = `Médiane des salaires : ${median}`;
+            } else {
+                document.getElementById('medianSalary').textContent = 'Aucun salaire disponible.';
+            }
+        }
+
+        // Fetch initial data (could be empty or predefined data)
         fetch('config.php')
             .then(response => response.json())
             .then(data => {
-                const employeeTable = document.getElementById('employeeTable');
-                const medianSalaryDiv = document.getElementById('medianSalary');
-
                 if (data.error) {
-                    medianSalaryDiv.textContent = data.error;
+                    document.getElementById('medianSalary').textContent = data.error;
                 } else {
-                    // Insérer les employés dans la table
-                    data.employees.forEach((employee, index) => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${index + 1}</td>
-                            <td>${employee.name}</td>
-                            <td>${employee.address}</td>
-                            <td>${employee.salary}</td>
-                        `;
-                        employeeTable.appendChild(row);
-                    });
-
-                    // Afficher la médiane
-                    medianSalaryDiv.textContent = `Médiane des salaires : ${data.median}`;
+                    employees = data.employees;
+                    renderTable();
+                    calculateMedianSalary();
                 }
             })
             .catch(err => {
@@ -86,5 +222,9 @@
                 console.error(err);
             });
     </script>
+
+    <!-- Ajout du script Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
 </body>
 </html>
