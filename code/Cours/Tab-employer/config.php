@@ -2,10 +2,10 @@
 header("Content-Type: application/json");
 
 // Connexion à la base de données
-$host = "mysql"; // ou 127.0.0.1
-$dbname = "appdb"; // Ton nom de base de données
-$user = "root"; // Par défaut "root" en local
-$password = "root"; // Met ton mot de passe s'il y en a un
+$host = "mysql"; 
+$dbname = "appdb";
+$user = "root"; 
+$password = "root"; 
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $user, $password, [

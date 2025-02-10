@@ -21,6 +21,8 @@ services:
       MYSQL_DATABASE: appdb
       MYSQL_USER: user
       MYSQL_PASSWORD: password
+      MYSQL_ELEVE: eleve
+      MYSQL_PASSWORD_ELEVE: eleve 
     volumes:
       - dbdata:/var/lib/mysql 
     ports:

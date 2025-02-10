@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -191,10 +191,14 @@
         // Calculate median salary function
         function calculateMedianSalary() {
             const salaries = employees.map(emp => emp.salary);
+            console.log(salaries); // Affiche les salaires récupérés
+
             const count = salaries.length;
 
             if (count > 0) {
                 salaries.sort((a, b) => a - b);
+                console.log(salaries); // Affiche les salaires après tri
+
                 const median = count % 2 === 0
                     ? (salaries[count / 2 - 1] + salaries[count / 2]) / 2
                     : salaries[Math.floor(count / 2)];
@@ -204,6 +208,7 @@
                 document.getElementById('medianSalary').textContent = 'Aucun salaire disponible.';
             }
         }
+
 
         // Fetch initial data (could be empty or predefined data)
         fetch('config.php')
